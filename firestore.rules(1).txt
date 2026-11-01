@@ -1,0 +1,107 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function tRef(tid) { return /databases/$(database)/documents/tournaments/$(tid); }
+    function isOwner() { return signedIn() && request.auth.uid == 'PASTE_YOUR_USER_ID_HERE'; }
+    function isHost(tid) { return signedIn() && (get(tRef(tid)).data.host == request.auth.uid || isOwner()); }
+    function isMember(tid) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/tournaments/$(tid)/teams/$(request.auth.uid))
+        && get(/databases/$(database)/documents/tournaments/$(tid)/teams/$(request.auth.uid)).data.status == 'approved';
+    }
+
+    // ---- Accounts ----
+    match /users/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['username', 'email'])
+        && request.resource.data.username.matches('^[A-Za-z0-9_]{3,20}$');
+      allow update, delete: if false;
+    }
+
+    // Username -> email lookup used at login. One lookup at a time, no listing, never overwritten.
+    match /usernames/{name} {
+      allow get: if true;
+      allow list: if false;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['uid', 'email'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email == request.auth.token.email
+        && getAfter(/databases/$(database)/documents/users/$(request.auth.uid)).data.username.lower() == name;
+      allow update, delete: if false;
+    }
+
+    // ---- Tournaments ----
+    match /tournaments/{tid} {
+      allow read: if signedIn();
+      allow create: if signedIn()
+        && request.resource.data.host == request.auth.uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.fee >= 0
+        && request.resource.data.cut >= 0 && request.resource.data.cut <= 50;
+      allow update: if resource.data.host == request.auth.uid || isOwner();
+      allow delete: if false;
+
+      // Public team info (names and in-game usernames)
+      match /teams/{uid} {
+        allow read: if signedIn();
+        allow create: if signedIn() && request.auth.uid == uid
+          && get(tRef(tid)).data.status == 'open'
+          && request.resource.data.status == 'pending'
+          && request.resource.data.keys().hasOnly(['name', 'captain', 'usernames', 'status']);
+        allow update: if isOwner();
+        allow delete: if false;
+      }
+
+      // Payment reference and payout details: only the app owner can read them
+      match /private/{uid} {
+        allow read: if isOwner() || (signedIn() && request.auth.uid == uid);
+        allow create: if signedIn() && request.auth.uid == uid
+          && request.resource.data.keys().hasOnly(['payRef', 'payout', 'code']);
+        allow update, delete: if false;
+      }
+
+      // Room ID and password: only the host writes, only approved teams read
+      match /room/{doc} {
+        allow read: if isHost(tid) || isMember(tid);
+        allow write: if isHost(tid);
+      }
+
+      // Knockout matches
+      match /matches/{mid} {
+        allow read: if signedIn();
+        allow create, delete: if isHost(tid);
+        // Players can only add their OWN report, once, for a match they play in.
+        // The winner is set by the server (Cloud Function) or by the host for disputes.
+        allow update: if isHost(tid)
+          || (isMember(tid)
+              && resource.data.winner == null
+              && request.auth.uid in [resource.data.a.id, resource.data.b.id]
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reports'])
+              && request.resource.data.reports.diff(resource.data.reports).affectedKeys().hasOnly([request.auth.uid])
+              && !(request.auth.uid in resource.data.reports));
+      }
+
+      // Battle royale results: captains submit, only the host can approve
+      match /results/{rid} {
+        allow read: if signedIn();
+        allow create, update: if isMember(tid)
+          && get(tRef(tid)).data.status == 'live'
+          && request.resource.data.tid == request.auth.uid
+          && rid == string(request.resource.data.g) + '_' + request.auth.uid
+          && request.resource.data.ok == false
+          && (request.method == 'create' || resource.data.ok != true);
+        allow update: if isHost(tid);
+        allow delete: if false;
+      }
+
+      // Prizes: only the app owner writes them
+      match /payouts/{pid} {
+        allow read: if signedIn();
+        allow write: if isOwner();
+      }
+    }
+  }
+}
