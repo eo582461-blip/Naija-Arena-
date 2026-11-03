@@ -225,7 +225,7 @@ function showList(){unsub();T=null;
     $("tl2").querySelectorAll("button").forEach(b=>b.onclick=()=>openT(b.dataset.id));}));}
 
 function openT(id){unsub();myPriv=null;room=null;
-  subs.push(onSnapshot(doc(db,"tournaments",id),s=>{T={id,...s.data()};draw()}));
+  subs.push(onSnapshot(doc(db,"tournaments",id),s=>{if(!s.exists()){T=null;showList();return}T={id,...s.data()};draw()}));
   [["teams",v=>teams=v],["matches",v=>matches=v],["results",v=>results=v],["payouts",v=>payouts=v],["private",v=>priv=v]].forEach(([n,set])=>
     subs.push(onSnapshot(collection(db,"tournaments",id,n),s=>{set(s.docs.map(d=>({id:d.id,...d.data()})));draw()}, ()=>{})));
   subs.push(onSnapshot(doc(db,"tournaments",id,"private",user.uid),s=>{myPriv=s.exists()?s.data():null;draw()},()=>{}));
@@ -274,8 +274,10 @@ function draw(){if(!T)return;
   if(isOwner()&&T.fmt==="ko"&&T.status==="live"){const f=matches.find(x=>x.r===T.rounds-1);if(f?.winner)h+=`<div class="card"><button id="fko">Finish tournament and work out the prize</button></div>`}
   if(T.fmt==="br"&&T.status!=="open")h+=brView(mine);
   if(T.status==="done")h+=payView();
+  if(isOwner())h+=`<div class="row" style="margin-top:20px"><button class="g" id="del" style="color:#ff7088">Delete this tournament</button></div>`;
   $("app").innerHTML=h;
   $("bk").onclick=showList;
+  if($("del"))$("del").onclick=deleteTournament;
   if($("jn"))$("jn").onclick=join;
   if($("cp"))$("cp").onclick=()=>{navigator.clipboard.writeText(PAY_NUMBER).then(()=>{$("cp").textContent="Copied!"},()=>{$("cp").textContent="Press and hold the number to copy"})};
   if($("dl"))$("dl").onclick=downloadTicket;
@@ -385,6 +387,20 @@ async function finishKO(w,l){const pr=modeOf(T)?.prizes||[0,0,0];
   b.set(tdoc("payouts",w.id),{team:w.name,amount:pr[0],place:1,paid:false});
   if(l&&pr[1]>0)b.set(tdoc("payouts",l.id),{team:l.name,amount:pr[1],place:2,paid:false});
   await b.commit();}
+
+/* ---------- Owner can delete a tournament ---------- */
+async function deleteTournament(){
+  if(!confirm("Delete this tournament for good? If players have paid, refund them first. This cannot be undone."))return;
+  const b=writeBatch(db);
+  teams.forEach(t=>b.delete(tdoc("teams",t.id)));
+  priv.forEach(t=>b.delete(tdoc("private",t.id)));
+  matches.forEach(m=>b.delete(tdoc("matches",m.id)));
+  results.forEach(r=>b.delete(tdoc("results",r.id)));
+  payouts.forEach(x=>b.delete(tdoc("payouts",x.id)));
+  b.delete(tdoc("room","info"));
+  b.delete(tdoc());
+  try{await b.commit()}catch(e){alert("Could not delete. Check your internet and try again.")}
+}
 
 /* ---------- Plain instructions: what to do next ---------- */
 function stepsCard(mine,host){
