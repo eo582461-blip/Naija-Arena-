@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ninja Arena</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@600;700&family=Rubik:wght@400;500;700&display=swap');
+:root{--bg:#07080d;--card:rgba(255,255,255,.05);--card2:rgba(255,255,255,.08);--ink:#f4f5fa;--mute:#9aa3bd;--line:rgba(255,255,255,.12);--red:#ff3b5c;--red2:#ff7a45;--ok:#2fd69a;--warn:#ffb648;--gold:#ffd166}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;color:var(--ink);font:16px/1.5 'Rubik',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--bg);
+ background-image:radial-gradient(700px 400px at 90% -10%,rgba(255,59,92,.28),transparent 60%),radial-gradient(600px 400px at -10% 25%,rgba(110,80,255,.25),transparent 60%);background-attachment:fixed}
+main{max-width:900px;margin:0 auto;padding:0 14px 70px}
+header{position:sticky;top:0;z-index:5;display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 14px;margin:0 -14px 16px;background:rgba(7,8,13,.78);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px}
+h1{margin:0;font:700 1.25rem 'Chakra Petch',system-ui,sans-serif;letter-spacing:2px}
+h2,summary{font:700 1.15rem 'Chakra Petch',system-ui,sans-serif;margin:0 0 10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:14px;backdrop-filter:blur(6px)}
+details.card summary{cursor:pointer;list-style:none;margin:0}
+details.card summary::after{content:"+";float:right;color:var(--red);font-size:1.4rem;line-height:1}
+details[open].card summary{margin-bottom:10px}details[open].card summary::after{content:"-"}
+.hero{border-radius:22px;padding:28px 20px;margin-bottom:16px;border:1px solid var(--line);background:linear-gradient(135deg,rgba(255,59,92,.30),rgba(110,80,255,.24))}
+.hero h2{font-size:2rem;line-height:1.1;margin:8px 0}.hero p{margin:0;color:#d9dcec}
+.kicker{font:700 .72rem 'Chakra Petch',sans-serif;letter-spacing:3px;color:var(--gold)}
+label{display:block;font-weight:600;margin:12px 0 5px;color:#dfe3f2}
+input,select{width:100%;padding:12px;border:1px solid var(--line);border-radius:12px;background:rgba(0,0,0,.4);color:var(--ink);font:inherit}
+button{font:inherit;font-weight:700;border:0;border-radius:12px;padding:11px 18px;color:#fff;cursor:pointer;background:linear-gradient(135deg,var(--red),var(--red2));box-shadow:0 6px 18px rgba(255,59,92,.3)}
+button:active{transform:scale(.98)}
+button.g{background:transparent;box-shadow:none;border:1px solid var(--line)}
+button.ok{background:linear-gradient(135deg,#1fbf86,var(--ok));color:#04140d;box-shadow:none}
+button.wide{width:100%;margin-top:12px}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--red2);outline-offset:2px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.mute{color:var(--mute);font-size:.9rem}
+.tag{font-size:.75rem;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:3px 10px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+.pending{color:var(--warn);border-color:var(--warn)}.approved{color:var(--ok);border-color:var(--ok)}.rejected{color:var(--red);border-color:var(--red)}
+.tcard{border:1px solid var(--line);border-radius:18px;padding:14px;margin-bottom:12px;background:var(--card2)}
+.tc-top{display:flex;align-items:center;gap:12px}.tc-top .tag{margin-left:auto}
+.gico{flex:none;width:50px;height:50px;display:grid;place-items:center;font-size:1.7rem;border-radius:14px;background:rgba(255,255,255,.08)}
+.tname{font:700 1.05rem 'Chakra Petch',sans-serif}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:12px}
+.chip{font-size:.82rem;padding:4px 10px;border-radius:99px;background:rgba(255,255,255,.08);border:1px solid var(--line)}
+.chip.prize{color:var(--gold);border-color:rgba(255,209,102,.4)}
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.item:first-of-type{border-top:0}
+.bracket{display:flex;gap:22px;overflow-x:auto;padding-bottom:8px}
+.round{display:flex;flex-direction:column;justify-content:space-around;gap:12px;min-width:220px}
+.round h3{margin:0;font:700 .85rem 'Chakra Petch',sans-serif;letter-spacing:1px;color:var(--gold);text-transform:uppercase}
+.m{border:1px solid var(--line);border-radius:14px;padding:10px 12px;background:rgba(0,0,0,.35)}
+.t{padding:3px 0}.t.w{color:var(--ok);font-weight:700}.t.l{color:var(--mute);text-decoration:line-through}
+.m input[type=number]{width:60px;padding:8px;display:inline-block}
+.champ{text-align:center;font:700 1.5rem 'Chakra Petch',sans-serif;border-radius:18px;padding:22px;margin-bottom:14px;color:var(--gold);border:1px solid rgba(255,209,102,.5);background:linear-gradient(135deg,rgba(255,209,102,.18),rgba(255,59,92,.12));box-shadow:0 0 30px rgba(255,209,102,.18)}
+table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;border-top:1px solid var(--line);text-align:left}th{color:var(--mute);font-weight:600}
+.err{color:#ff7088;margin:8px 0 0}
+#who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:14px}
+.sheet{background:#12141d;border:1px solid var(--line);border-radius:20px;max-width:520px;width:100%;max-height:88vh;overflow:auto;padding:20px}
+ol.rules{padding-left:22px;margin:0}ol.rules li{margin:9px 0}
+.scrollbox{max-height:220px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:12px;background:rgba(0,0,0,.35);font-size:.92rem}
+.chk{display:flex;gap:10px;align-items:flex-start;margin-top:14px;font-weight:500}
+.chk input{width:24px;height:24px;flex:none;margin:0}
+.steps{border-left:4px solid var(--red)}
+</style>
+</head>
+<body>
+<main><header><div class="logo"><svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b5c"/><stop offset="1" stop-color="#ff7a45"/></linearGradient></defs><path d="M16 1l4 11 11 4-11 4-4 11-4-11L1 16l11-4z" fill="url(#lg)"/><circle cx="16" cy="16" r="3.2" fill="#07080d"/></svg><h1>NINJA ARENA</h1></div><div id="who"></div></header><div id="app"></div></main>
+
+<script type="module">
+/* ===== 1. SETUP ===== */
+const firebaseConfig = {apiKey:"AIzaSyCWHx33kP5w0mbgYuEeMMf54kgz28rI4xg",authDomain:"naija-arena-2fcd4.firebaseapp.com",projectId:"naija-arena-2fcd4",appId:"1:126796871055:web:a495df4940691a7664c7fa"};
+const PLACE_POINTS = [12,9,8,7,6,5,4,3,2,1];          // points for 1st, 2nd, 3rd... (0 after the list). 1 point per kill is added.
+const BR_SPLIT = [50,30,20];                           // % of prize pool for top 3 in battle royale
+const OWNER_UID = "GPA0hn4kXBc97AExhCQEQih9aoi2";
+const OWNER_UID2 = "NjLHFeFX8fchGDLimxeIxORX8hl2";   // second account with the same email   // your own account's User UID (Firebase Console > Authentication)
+const PAY_BANK = "SmartCash", PAY_NUMBER = "9023721750", PAY_NAME = "OGBONNA CHIMMA BLESSING";   // where players send entry fees (your account)
+/* Fixed per game, nobody else can change these. fee = naira per person, size = players per team,
+   max = max teams, prizes = naira for 1st, 2nd, 3rd. You keep the rest.
+   Free Fire and CODM BR follow your plan. The knockout and 1v1 amounts are placeholders: change them here. */
+const ONE = {fmt:"ko",size:1,max:2,fee:1000,prizes:[1500,0,0]};   // 1v1: each player pays 1,000, winner gets 1,500, you keep 500
+const TWO = {fmt:"ko",size:2,max:2,fee:1000,prizes:[3000,0,0]};   // 2v2: each player pays 1,000 (4,000 in all), winning team gets 3,000, you keep 1,000
+const GAMES = {
+  "Free Fire":{
+    "Battle royale (squad of 4)":{fmt:"br",size:4,max:12,fee:500,prizes:[8000,6000,4000]},
+    "Clash squad (4v4 knockout)":{fmt:"ko",size:4,max:8,fee:500,prizes:[8000,4000,0]},
+    "2v2 match":TWO,
+    "1v1":ONE},
+  "CODM":{
+    "Battle royale (squad of 4)":{fmt:"br",size:4,max:13,fee:500,prizes:[8000,6000,4000]},
+    "Multiplayer 5v5 (knockout)":{fmt:"ko",size:5,max:8,fee:500,prizes:[10000,5000,0]},
+    "1v1":ONE},
+  "Blood Strike":{
+    "Battle royale (squad of 4)":{fmt:"br",size:4,max:13,fee:500,prizes:[8000,6000,4000]},
+    "1v1":ONE},
+  "Call of Duty":{
+    "2v2 match":TWO,
+    "1v1":ONE},
+  "DLS":{"1v1 match":ONE,"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
+  "FC Mobile":{"1v1 match":ONE,"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
+  "eFootball":{"1v1 match":ONE,"Cup (8 players)":{fmt:"ko",size:1,max:8,fee:500,prizes:[2000,1000,0]},"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
+  "Chess":{"1v1 match":ONE,"Cup (up to 16 players)":{fmt:"ko",size:1,max:16,fee:500,prizes:[4000,2000,0]}},
+  "Ludo":{"1v1 match":ONE,"Cup (up to 16 players)":{fmt:"ko",size:1,max:16,fee:500,prizes:[4000,2000,0]}},
+  "Other game":{"1v1 match":ONE,"Team knockout (4 per team)":{fmt:"ko",size:4,max:8,fee:500,prizes:[8000,4000,0]}}
+};
+const modeOf=t=>{const g=GAMES[t.game]||{};return g[t.mode]||Object.values(g)[0]||null};
+/* ================= */
+
+const ICON={"Free Fire":"🔥","CODM":"🎯","CODM Battle Royale":"🎯","Other game":"🎮","Blood Strike":"🩸","CODM Multiplayer":"🔫","Call of Duty":"🎖️","DLS":"⚽","FC Mobile":"⚽","eFootball":"⚽","Chess":"♟️","Ludo":"🎲"};
+const TERMS_VERSION="2";   // change this number whenever you change the rules, and everyone must accept again
+const CONTACT_INFO='Questions or problems? Contact the owner on WhatsApp: <a href="https://wa.me/2349023721750" style="color:#ff7a45;font-weight:700">09023721750</a> or by email: <a href="mailto:launchnaija@gmail.com" style="color:#ff7a45;font-weight:700">launchnaija@gmail.com</a>';
+const RULES=[
+ "One person, one account. Use your real in-game username, exactly as it appears in the game.",
+ "Pay the exact entry fee to the account shown on the tournament page, then register with your payment reference. You are NOT in until the owner approves your payment. Do not pay twice.",
+ "Your ticket is your proof of entry. Download it and keep it. The team captain must show the ticket code to be paid any prize.",
+ "Be ready on time. The room ID and password appear in the app shortly before the start. Teams that miss the start can be removed, and the entry fee is not refunded.",
+ "Play fair and report honestly. No hacks, no cheats, no fake screenshots, no fake scores. Every result screenshot must show your phone\'s clock and be taken within the last 60 minutes, or it is not valid. Cheaters lose their entry and prize and are banned. In a dispute, the host or owner decides and the decision is final.",
+ "Prizes are fixed for each game and shown on the tournament page. They are paid to the winning captain's payout account after results are confirmed and the ticket is checked. Make sure your payout details are correct, because money sent to a wrong account you gave cannot be recovered."
+];
+const TERMS_HTML=`<p><strong>Rules</strong></p><ol class="rules">${RULES.map(r=>`<li>${r}</li>`).join("")}</ol>
+<p><strong>Money</strong><br>Entry fees are paid by bank transfer to the account shown in the app. Once your entry is approved it is not refunded, unless the tournament is cancelled. Prize amounts are fixed for each game. The app owner keeps what is left after prizes are paid.</p>
+<p><strong>Privacy</strong><br>We collect your email, username, team name, in-game usernames, payment reference, payout account details and tournament results. Your payment reference and payout details can only be seen by the app owner. Your username, team name and in-game usernames can be seen by other players. Result screenshots are read on your own phone to check usernames and are not uploaded or stored. Your data is stored with Google Firebase. We do not sell your data. To ask for your data to be removed, contact the owner.</p>
+<p><strong>Your agreement</strong><br>By creating an account you confirm that you are 18 or older, that you have read and accepted these rules, terms and privacy notice, and that you play at your own risk.</p>
+<p class="mute">${CONTACT_INFO}</p>`;
+import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {getFirestore,collection,doc,setDoc,getDoc,updateDoc,addDoc,writeBatch,onSnapshot,query,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const tdoc=(...p)=>doc(db,"tournaments",T.id,...p), tcol=n=>collection(db,"tournaments",T.id,n);
+let user=null,subs=[],T=null,teams=[],matches=[],results=[],payouts=[],priv=[],myPriv=null,room=null;
+const pv=id=>priv.find(p=>p.id===id)||{};
+const unsub=()=>{subs.forEach(f=>f());subs=[]};
+const isOwner=()=>!!user&&(user.uid===OWNER_UID||user.uid===OWNER_UID2);
+const isHost=()=>!!T&&(T.host===user.uid||isOwner());
+
+let profile=null,signingUp=false;
+const cleanName=s=>s.trim().toLowerCase();
+async function handleAuth(u){
+  if(signingUp)return;
+  user=u;profile=null;
+  if(u){try{const s=await getDoc(doc(db,"users",u.uid));profile=s.exists()?s.data():{username:u.email}}catch(e){profile={username:u.email}}}
+  $("who").innerHTML=u?`<span class="mute">@${esc(profile.username)}</span> <button class="g" id="rb">Rules</button> <button class="g" id="out">Log out</button>`:"";
+  if(u){$("out").onclick=()=>signOut(auth);$("rb").onclick=()=>showRules();}
+  if(!u){showAuth();return}
+  if(profile.terms!==TERMS_VERSION){showAccept();return}
+  showList();showRules();
+}
+onAuthStateChanged(auth,handleAuth);
+
+function showAccept(){unsub();
+  $("app").innerHTML=`<div class="card"><h2>Please read and accept</h2><div class="scrollbox" style="max-height:55vh">${TERMS_HTML}</div>
+  <label class="chk"><input type="checkbox" id="ag"><span>I have read and I accept the Rules, Terms and Privacy Notice.</span></label>
+  <div class="row"><button id="acc">Accept and continue</button></div><p class="err" id="er"></p></div>`;
+  $("acc").onclick=async()=>{if(!$("ag").checked){$("er").textContent="Tick the box to continue.";return}
+    try{await updateDoc(doc(db,"users",user.uid),{acceptedAt:Date.now(),terms:TERMS_VERSION});profile.terms=TERMS_VERSION;showList();showRules()}
+    catch(e){$("er").textContent="Could not save. Check your internet and try again."}};}
+
+function showRules(){
+  if($("rm"))return;
+  const d=document.createElement("div");d.className="modal";d.id="rm";
+  d.innerHTML=`<div class="sheet"><h2>Rules of the Arena</h2><ol class="rules">${RULES.map(r=>`<li>${esc(r)}</li>`).join("")}</ol><div class="row"><button id="rx">Close</button></div></div>`;
+  document.body.appendChild(d);$("rx").onclick=()=>d.remove();}
+
+function showAuth(mode="login"){unsub();
+  const su=mode==="signup";
+  $("app").innerHTML=`<div class="card"><h2>${su?"Create your account":"Log in"}</h2>
+  ${su?`<label for="em">Email</label><input id="em" type="email" autocomplete="email">`:""}
+  <label for="un">Username</label><input id="un" autocomplete="username" ${su?'placeholder="3-20 letters, numbers or _"':""}>
+  <label for="pw">Password (6+ characters)</label><input id="pw" type="password" autocomplete="${su?"new-password":"current-password"}">${su?`<div class="scrollbox" style="margin-top:14px">${TERMS_HTML}</div><label class="chk"><input type="checkbox" id="ag"><span>I have read and I accept the Rules, Terms and Privacy Notice.</span></label>`:""}
+  <div class="row"><button id="go">${su?"Sign up":"Log in"}</button></div><p class="err" id="er"></p>
+  <p class="mute">${su?"Already have an account?":"No account yet?"} <a href="#" id="sw" style="color:var(--red)">${su?"Log in":"Sign up"}</a></p></div>`;
+  $("sw").onclick=e=>{e.preventDefault();showAuth(su?"login":"signup")};
+  $("go").onclick=su?doSignup:doLogin;}
+
+async function doSignup(){
+  const em=$("em").value.trim(),un=$("un").value.trim(),pw=$("pw").value,er=$("er");
+  if(!em||!un||!pw){er.textContent="Fill in every box.";return}
+  if(!$("ag").checked){er.textContent="You must read and accept the rules and privacy notice to sign up.";return}
+  if(!/^[A-Za-z0-9_]{3,20}$/.test(un)){er.textContent="Username must be 3-20 letters, numbers or _ (no spaces).";return}
+  try{
+    if((await getDoc(doc(db,"usernames",cleanName(un)))).exists()){er.textContent="That username is taken. Pick another.";return}
+    signingUp=true;
+    const c=await createUserWithEmailAndPassword(auth,em,pw),b=writeBatch(db);
+    b.set(doc(db,"users",c.user.uid),{username:un,email:em,acceptedAt:Date.now(),terms:TERMS_VERSION});
+    b.set(doc(db,"usernames",cleanName(un)),{uid:c.user.uid,email:em});
+    await b.commit();
+    signingUp=false;handleAuth(c.user);
+  }catch(e){signingUp=false;const c=e.code||"";
+    er.textContent=c==="auth/email-already-in-use"?"An account with this email already exists. Log in instead.":
+      c==="auth/weak-password"?"Password must be at least 6 characters.":c==="auth/invalid-email"?"That email does not look right.":"Could not sign up: "+c.replace("auth/","").replace(/-/g," ");}}
+
+async function doLogin(){
+  const un=$("un").value.trim(),pw=$("pw").value,er=$("er");
+  if(!un||!pw){er.textContent="Enter your username and password.";return}
+  try{
+    const s=await getDoc(doc(db,"usernames",cleanName(un)));
+    if(!s.exists()){er.textContent="No account with that username. Sign up first.";return}
+    await signInWithEmailAndPassword(auth,s.data().email,pw);
+  }catch(e){const c=e.code||"";
+    er.textContent=c==="auth/invalid-credential"||c==="auth/wrong-password"?"Wrong password.":"Could not log in: "+c.replace("auth/","").replace(/-/g," ");}}
+
+/* ---------- List + host a tournament ---------- */
+function showList(){unsub();T=null;
+  $("app").innerHTML=`<div class="hero"><div class="kicker">MOBILE GAME TOURNAMENTS</div><h2>Compete. Win. Get paid.</h2><p>Free Fire, CODM, Blood Strike, DLS, FC Mobile and more. Pay your entry, get your ticket, play and win.</p></div>
+  <div class="card"><h2>Open tournaments</h2><div id="tl2" class="mute">Loading...</div></div>
+  <details class="card"><summary>Host a tournament</summary>
+  <label for="tn">Name</label><input id="tn" placeholder="Friday Night Cup">
+  <label for="tg">Game</label><select id="tg">${Object.keys(GAMES).map(g=>`<option>${g}</option>`).join("")}</select>
+  <label for="tmd">Mode</label><select id="tmd"></select><p class="mute" id="gi"></p>
+  <label for="tgm">Matches (battle royale only)</label><input id="tgm" type="number" min="1" value="3">
+  <label for="tst">Start date and time</label><input id="tst" type="datetime-local">
+  <div class="row"><button id="mk">Create tournament</button></div><p class="err" id="er"></p></details>`;
+  const info=()=>{const g=GAMES[$("tg").value][$("tmd").value];if(!g)return;$("gi").textContent=`${g.fmt==="br"?"Battle royale points":"Knockout"} | ${g.size} per team | entry ${g.fee*g.size} naira per team | up to ${g.max} ${g.size>1?"teams":"players"}${g.fmt==="ko"&&g.max>2?" | players are shuffled automatically":""}`};
+  const modes=()=>{$("tmd").innerHTML=Object.keys(GAMES[$("tg").value]).map(m=>`<option>${esc(m)}</option>`).join("");info()};
+  $("tg").onchange=modes;$("tmd").onchange=info;modes();
+  $("mk").onclick=async()=>{const n=$("tn").value.trim();if(!n){$("er").textContent="Enter a tournament name.";return}
+    const g=GAMES[$("tg").value][$("tmd").value];
+    await addDoc(collection(db,"tournaments"),{name:n,game:$("tg").value,mode:$("tmd").value,fmt:g.fmt,fee:g.fee,teamSize:g.size,maxTeams:g.max,games:+$("tgm").value||1,cut:0,startsAt:$("tst").value||"",status:"open",host:user.uid,hostName:profile.username,createdAt:serverTimestamp()});};
+  subs.push(onSnapshot(query(collection(db,"tournaments"),orderBy("createdAt","desc")),s=>{
+    $("tl2").innerHTML=s.empty?"None yet. Host the first one.":s.docs.map(d=>{const t=d.data();
+    const pz=modeOf(t)?.prizes||[];return `<div class="tcard"><div class="tc-top"><span class="gico">${ICON[t.game]||"🎮"}</span><div><div class="tname">${esc(t.name)}</div><div class="mute">${esc(t.game)} · ${esc(t.mode||(t.fmt==="br"?"Battle royale":"Knockout"))}${t.startsAt?" · "+esc(t.startsAt.replace("T"," ")):""}</div></div><span class="tag ${t.status==="open"?"approved":""}">${esc(t.status)}</span></div>
+    <div class="chips"><span class="chip">Entry ${t.fee*t.teamSize} naira</span>${pz.filter(Boolean).map((p,i)=>`<span class="chip prize">${["🥇","🥈","🥉"][i]} ${p.toLocaleString()}</span>`).join("")}</div>
+    <button data-id="${d.id}" class="wide">View tournament</button></div>`}).join("");
+    $("tl2").querySelectorAll("button").forEach(b=>b.onclick=()=>openT(b.dataset.id));}));}
+
+function openT(id){unsub();myPriv=null;room=null;
+  subs.push(onSnapshot(doc(db,"tournaments",id),s=>{T={id,...s.data()};draw()}));
+  [["teams",v=>teams=v],["matches",v=>matches=v],["results",v=>results=v],["payouts",v=>payouts=v],["private",v=>priv=v]].forEach(([n,set])=>
+    subs.push(onSnapshot(collection(db,"tournaments",id,n),s=>{set(s.docs.map(d=>({id:d.id,...d.data()})));draw()}, ()=>{})));
+  subs.push(onSnapshot(doc(db,"tournaments",id,"private",user.uid),s=>{myPriv=s.exists()?s.data():null;draw()},()=>{}));
+  subs.push(onSnapshot(doc(db,"tournaments",id,"room","info"),s=>{room=s.exists()?s.data():null;draw()},()=>{}));}
+
+const approved=()=>teams.filter(t=>t.status==="approved");
+const pool=()=>approved().length*T.fee*T.teamSize;
+
+/* ---------- Main screen ---------- */
+function draw(){if(!T)return;
+  const mine=teams.find(t=>t.id===user.uid),total=T.fee*T.teamSize,host=isHost();
+  let h=`<div class="row" style="margin:0 0 10px"><button class="g" id="bk">Back</button></div>
+  <div class="card"><h2>${esc(T.name)}</h2><div class="mute">${esc(T.game)}${T.mode?" - "+esc(T.mode):""} | ${T.fmt==="br"?"battle royale, "+T.games+" matches":"knockout"} | ${T.teamSize} per team | ${total} naira per team | ${esc(T.status)}${T.startsAt?" | starts "+esc(T.startsAt.replace("T"," ")):""}<br>Hosted by ${esc(T.hostName)} | ${isOwner()?"Collected so far: "+pool()+" naira | ":""}Prizes: ${(modeOf(T)?.prizes||[]).filter(Boolean).join(" / ")} naira</div></div>`;
+  h+=stepsCard(mine,host);
+  if(T.champion)h+=`<div class="champ">Champion: ${esc(T.champion)}</div>`;
+
+  if(T.status==="open"&&!mine&&approved().length<T.maxTeams)h+=`<div class="card"><h2>Register</h2>
+  <div style="border:2px solid var(--red);border-radius:12px;padding:16px;text-align:center;margin:8px 0 12px">
+    <div class="mute">Send ${total} naira to</div>
+    <div style="font:700 2.5rem 'Chakra Petch',sans-serif;letter-spacing:3px;margin:6px 0;color:#fff;text-shadow:0 0 20px rgba(255,59,92,.65)">${PAY_NUMBER}</div>
+    <div style="font:700 1.3rem 'Chakra Petch',sans-serif;color:var(--gold)">${PAY_BANK}</div>
+    <div style="font:700 1.1rem 'Chakra Petch',sans-serif;margin-bottom:12px">${PAY_NAME}</div>
+    <button id="cp">Copy account number</button></div>
+  <p class="mute">After you pay, fill this in. You are the team captain.</p>
+  <label for="tm">Team name${T.teamSize===1?" (or your name)":""}</label><input id="tm">
+  <label for="cu">Your in-game username (captain)</label><input id="cu">
+  ${T.teamSize>1?`<label for="mu">Other players' in-game usernames (comma separated)</label><input id="mu">`:""}
+  <label for="pr">Payment reference or sender name</label><input id="pr">
+  <label for="po">Where to send your prize (bank name and account number)</label><input id="po">
+  <div class="row"><button id="jn">Submit entry</button></div><p class="err" id="er"></p></div>`;
+  if(mine)h+=`<div class="card"><h2>Your entry: ${esc(mine.name)}</h2><span class="tag ${mine.status}">${esc(mine.status)}</span>
+  <p class="mute">${mine.status==="pending"?"Waiting for the host to confirm your payment.":mine.status==="approved"?"You are in.":"Entry rejected. Contact the host."}</p></div>`;
+
+  if(mine?.status==="approved"&&myPriv)h+=`<div class="card" style="border:2px dashed var(--red)"><h2>Game ticket</h2><div><strong>${esc(T.name)}</strong><br>${esc(T.game)}${T.startsAt?" | "+esc(T.startsAt.replace("T"," ")):""}</div>
+  <div class="mute">Team: ${esc(mine.name)} | Captain: ${esc(mine.captain)}<br>Players: ${esc((mine.usernames||[]).join(", "))}<br>Paid: ${total} naira</div>
+  <div style="font-size:1.4rem;font-weight:700;margin-top:8px">${esc(myPriv.code)}</div><p class="mute">Screenshot this ticket and keep it. The captain needs it to claim any prize.</p><div class="row"><button id="dl">Download ticket</button></div></div>`;
+  if(host&&T.status!=="done")h+=`<div class="card"><h2>Game room details</h2><p class="mute">Only approved teams can see these. Add them shortly before the match starts.</p>
+  <label for="ri">Room ID</label><input id="ri" value="${esc(room?.id||"")}"><label for="rp">Room password</label><input id="rp" value="${esc(room?.pass||"")}">
+  <div class="row"><button id="rs">Save room details</button></div></div>`;
+  else if(mine?.status==="approved"&&T.status!=="done")h+=`<div class="card"><h2>Game room</h2>${room?.id?`<p>Room ID: <strong>${esc(room.id)}</strong><br>Password: <strong>${esc(room.pass)}</strong></p><p class="mute">Open the game, go to custom rooms and enter these.</p>`:`<p class="mute">The host will post the room ID and password here shortly before the match.</p>`}</div>`;
+  if(host&&T.status==="open")h+=`<div class="card"><h2>Entries (${approved().length} approved)</h2>`+(teams.length?teams.map(t=>`<div class="item"><div><strong>${esc(t.name)}</strong> <span class="tag ${t.status}">${esc(t.status)}</span><br>
+  <span class="mute">${esc((t.usernames||[]).join(", "))} ${isOwner()?" | ref: "+esc(pv(t.id).payRef):""}</span></div>${isOwner()?`<div class="row" style="margin:0"><button class="ok" data-a="approved" data-id="${t.id}">Approve</button><button class="g" data-a="rejected" data-id="${t.id}">Reject</button></div>`:""}</div>`).join(""):`<p class="mute">No entries yet.</p>`)+
+  `<div class="row"><button id="st">Start tournament</button></div><p class="err" id="er2"></p></div>`;
+
+  if(matches.length)h+=`<div class="card"><div class="bracket">${bracket()}</div></div>`;
+  if(isOwner()&&T.fmt==="ko"&&T.status==="live"){const f=matches.find(x=>x.r===T.rounds-1);if(f?.winner)h+=`<div class="card"><button id="fko">Finish tournament and work out the prize</button></div>`}
+  if(T.fmt==="br"&&T.status!=="open")h+=brView(mine);
+  if(T.status==="done")h+=payView();
+  $("app").innerHTML=h;
+  $("bk").onclick=showList;
+  if($("jn"))$("jn").onclick=join;
+  if($("cp"))$("cp").onclick=()=>{navigator.clipboard.writeText(PAY_NUMBER).then(()=>{$("cp").textContent="Copied!"},()=>{$("cp").textContent="Press and hold the number to copy"})};
+  if($("dl"))$("dl").onclick=downloadTicket;
+  document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>updateDoc(tdoc("teams",b.dataset.id),{status:b.dataset.a}));
+  if($("st"))$("st").onclick=start;
+  document.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{b.disabled=true;b.textContent="Checking screenshot...";report(b.dataset.rep).finally(()=>{b.disabled=false;b.textContent="Submit result"})});
+  document.querySelectorAll("[data-win]").forEach(b=>b.onclick=()=>{const[i,s]=b.dataset.win.split("|");resolve(matches.find(m=>m.id===i),s)});
+  document.querySelectorAll("[data-ok]").forEach(b=>b.onclick=()=>updateDoc(tdoc("results",b.dataset.ok),{ok:true}));
+  document.querySelectorAll("[data-no]").forEach(b=>b.onclick=()=>updateDoc(tdoc("results",b.dataset.no),{ok:false,rejected:true}));
+  document.querySelectorAll("[data-paid]").forEach(b=>b.onclick=()=>updateDoc(tdoc("payouts",b.dataset.paid),{paid:true}));
+  if($("brs"))$("brs").onclick=()=>{const b=$("brs");b.disabled=true;b.textContent="Checking screenshot...";submitBR().finally(()=>{b.disabled=false;b.textContent="Submit"})};
+  if($("fin"))$("fin").onclick=finishBR;
+  if($("fko"))$("fko").onclick=()=>{const f=matches.find(x=>x.r===T.rounds-1);finishKO(f[f.winner],f[f.winner==="a"?"b":"a"])};
+  if($("rs"))$("rs").onclick=()=>setDoc(tdoc("room","info"),{id:$("ri").value.trim(),pass:$("rp").value.trim()});
+  document.querySelectorAll("[data-vt]").forEach(b=>b.onclick=()=>{const ok=$("vt_"+b.dataset.vt).value.trim().toUpperCase()===(pv(b.dataset.vt).code||"");alert(ok?"Ticket is valid. This is the registered team.":"Ticket does NOT match. Do not pay.")});}
+
+async function join(){
+  const name=$("tm").value.trim(),cu=$("cu").value.trim(),pr=$("pr").value.trim(),po=$("po").value.trim();
+  if(!name||!cu||!pr||!po){$("er").textContent="Fill in every box.";return}
+  const others=T.teamSize>1?$("mu").value.split(",").map(s=>s.trim()).filter(Boolean):[];
+  if(others.length+1!==T.teamSize){$("er").textContent=`This game needs ${T.teamSize} usernames in total, including yours.`;return}
+  await setDoc(tdoc("teams",user.uid),{name,captain:cu,usernames:[cu,...others],status:"pending"});await setDoc(tdoc("private",user.uid),{payRef:pr,payout:po,code:crypto.randomUUID().slice(0,8).toUpperCase()});}
+
+/* ---------- Screenshot check (reads text in the image, in the browser) ---------- */
+const SHOT_WINDOW_MIN=60;   // a screenshot must be from the last 60 minutes
+async function loadOCR(){if(window.Tesseract)return;await new Promise((ok,no)=>{const e=document.createElement("script");e.src="https://cdnjs.cloudflare.com/ajax/libs/tesseract.js/5.1.0/tesseract.min.js";e.onload=ok;e.onerror=no;document.head.appendChild(e)})}
+async function serverTime(){   // real time from the web server, so changing the phone's clock does not help
+  try{const r=await fetch(location.href.split("#")[0],{method:"HEAD",cache:"no-store"});const d=r.headers.get("date");if(d){const t=Date.parse(d);if(!isNaN(t))return t}}catch(e){}
+  return null;
+}
+const ago=m=>m>1440?Math.round(m/1440)+" days ago":m>90?Math.round(m/60)+" hours ago":Math.round(m)+" minutes ago";
+async function checkShot(file,names){
+  if(!file)return{ok:false,msg:"you did not upload a screenshot."};
+  const st=await serverTime(),dev=Date.now();
+  if(st&&Math.abs(st-dev)>3*60000)return{ok:false,msg:"your phone's clock is wrong. Set your phone's date and time to automatic, then try again."};
+  const now=new Date(st||dev),age=(now.getTime()-file.lastModified)/60000;
+  if(age>SHOT_WINDOW_MIN||age<-5)return{ok:false,msg:"this picture was saved "+(age<0?"in the future":ago(age))+". It must be taken within the last "+SHOT_WINDOW_MIN+" minutes."};
+  await loadOCR();
+  const img=await createImageBitmap(file);
+  const full=document.createElement("canvas");full.width=img.width;full.height=img.height;full.getContext("2d").drawImage(img,0,0);
+  const sh=Math.max(40,Math.round(img.height*0.08)),strips=["grayscale(1) contrast(1.6)","grayscale(1) invert(1) contrast(1.6)"].map(f=>{
+    const c=document.createElement("canvas");c.width=img.width*2;c.height=sh*2;const x=c.getContext("2d");x.fillStyle="#fff";x.fillRect(0,0,c.width,c.height);x.filter=f;x.drawImage(img,0,0,img.width,sh,0,0,c.width,c.height);return c});
+  const w=await window.Tesseract.createWorker("eng");
+  const all=(await w.recognize(full)).data.text.toLowerCase().replace(/\s+/g,"");
+  await w.setParameters({tessedit_char_whitelist:"0123456789:. "});
+  let clock="";for(const c of strips)clock+=" "+(await w.recognize(c)).data.text;
+  await w.terminate();
+  const found=[...clock.matchAll(/(\d{1,2})[:.](\d{2})/g)].map(m=>[+m[1],+m[2]]).filter(([h,m])=>h<24&&m<60);
+  const nm=now.getHours()*60+now.getMinutes(),f2=t=>String(t[0]).padStart(2,"0")+":"+String(t[1]).padStart(2,"0");
+  const d24=([h,m])=>{const d=Math.abs(h*60+m-nm);return Math.min(d,1440-d)},d12=([h,m])=>{const d=Math.abs((h%12)*60+m-(nm%720));return Math.min(d,720-d)};
+  if(!found.length)return{ok:false,msg:"I could not see a clock at the top of your screenshot. Make sure your phone's time shows in the status bar."};
+  const good=found.find(t=>Math.min(d24(t),d12(t))<=SHOT_WINDOW_MIN);
+  if(!good)return{ok:false,msg:"the clock in your screenshot shows "+f2(found[0])+" but the time now is "+f2([now.getHours(),now.getMinutes()])+"."};
+  const hit=names.filter(n=>all.includes(n.toLowerCase().replace(/\s+/g,"")));
+  return{ok:true,msg:"valid screenshot: clock "+f2(good)+", saved "+Math.max(0,Math.round(age))+" min ago, matched "+hit.length+" of "+names.length+" usernames"};
+}
+
+/* ---------- Knockout ---------- */
+function bracket(){const R={};matches.forEach(m=>(R[m.r]??=[]).push(m));const n=Object.keys(R).length;
+  return Object.keys(R).sort((a,b)=>a-b).map(r=>{const left=n-r,nm=left===1?"Final":left===2?"Semi-finals":left===3?"Quarter-finals":"Round "+(+r+1);
+  return `<div class="round"><h3>${nm}</h3>${R[r].sort((a,b)=>a.i-b.i).map(card).join("")}</div>`}).join("");}
+function card(m){
+  const row=s=>`<div class="t ${m.winner===s?"w":m.winner?"l":""}">${m[s]?esc(m[s].name):(m.bye?"Bye":"Waiting...")}</div>`;
+  const rep=m.reports||{},play=m.a&&m.b&&!m.winner,my=m.a?.id===user.uid||m.b?.id===user.uid,ra=rep[m.a?.id],rb=rep[m.b?.id];
+  const clash=ra&&rb&&(ra.a!==rb.a||ra.b!==rb.b);const opp=my&&play?(m.a.id===user.uid?m.b:m.a):null,oc=opp&&teams.find(t=>t.id===opp.id)?.captain;
+  const hint=opp?`<div class="mute">Your opponent: <strong>${esc(opp.name)}</strong>${oc?" | in-game username: <strong>"+esc(oc)+"</strong>":""}. Add them in the game and play your match.</div>`:"";
+  let x=hint;
+  if(play&&my)x+=rep[user.uid]?`<div class="mute">You reported ${rep[user.uid].a}-${rep[user.uid].b} (${esc(rep[user.uid].ocr)}). ${clash?"Scores do not match. The host will decide.":"Waiting for the other team."}</div>`:
+    `<div class="row">${esc(m.a.name)} <input id="a_${m.id}" type="number" min="0"> - <input id="b_${m.id}" type="number" min="0"> ${esc(m.b.name)}</div>
+     <div class="row"><input id="f_${m.id}" type="file" accept="image/*"><button data-rep="${m.id}">Submit result</button></div>`;
+  if(play&&clash&&isHost())x+=`<div class="row"><button class="ok" data-win="${m.id}|a">${esc(m.a.name)} won</button><button class="ok" data-win="${m.id}|b">${esc(m.b.name)} won</button></div>`;
+  if(play&&isHost()&&!clash)x+=`${ra&&rb?`<div class="mute">Both teams agree on ${ra.a}-${ra.b}. Confirm the winner:</div>`:""}<div class="row"><button class="g" data-win="${m.id}|a">${esc(m.a.name)} won</button><button class="g" data-win="${m.id}|b">${esc(m.b.name)} won</button></div>`;
+  
+  const tr=[m.a,m.b].filter(t=>t&&rep[t.id]).map(t=>`<div class="mute">${esc(t.name)} reported ${rep[t.id].a}-${rep[t.id].b} (${esc(rep[t.id].ocr)})</div>`).join("");
+  return `<div class="m">${row("a")}${row("b")}${tr}${x}</div>`;}
+
+async function start(){
+  const ok=approved().map(t=>({id:t.id,name:t.name}));
+  if(ok.length<2){$("er2").textContent="Approve at least 2 teams first.";return}
+  if(T.fmt==="br"){await updateDoc(tdoc(),{status:"live"});return}
+  for(let i=ok.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ok[i],ok[j]]=[ok[j],ok[i]]}
+  let size=2;while(size<ok.length)size*=2;const seeds=ok.concat(Array(size-ok.length).fill(null)),Rn=Math.log2(size),rounds=[];
+  rounds.push(Array.from({length:size/2},(_,i)=>({r:0,i,a:seeds[i],b:seeds[size-1-i],reports:{},winner:null})));
+  for(let r=1;r<Rn;r++)rounds.push(Array.from({length:size/2**(r+1)},(_,i)=>({r,i,a:null,b:null,reports:{},winner:null})));
+  rounds[0].forEach(m=>{if(!m.a||!m.b){m.bye=true;m.winner=m.a?"a":"b";const nx=rounds[1]?.[Math.floor(m.i/2)];if(nx)nx[m.i%2===0?"a":"b"]=m[m.winner]}});
+  const b=writeBatch(db);rounds.flat().forEach(m=>b.set(tdoc("matches",`r${m.r}_${m.i}`),{...m,a:m.a??null,b:m.b??null,bye:!!m.bye}));
+  b.update(tdoc(),{status:"live",rounds:Rn});await b.commit();}
+
+async function report(id){
+  const m=matches.find(x=>x.id===id),a=parseInt($("a_"+id).value),b=parseInt($("b_"+id).value);
+  if(isNaN(a)||isNaN(b)||a===b){alert("Enter both scores. A tie is not allowed.");return}
+  const names=[m.a,m.b].flatMap(t=>teams.find(x=>x.id===t.id)?.usernames||[]);
+  let ck;try{ck=await checkShot($("f_"+id).files[0],names)}catch(e){ck={ok:false,msg:"the screenshot could not be read. Try again with a clear screenshot."}}
+  if(!ck.ok){alert("Screenshot not valid: "+ck.msg+"\n\nTake a new screenshot with your phone's clock showing and try again.");return}
+  const ocr=ck.msg;
+  await updateDoc(tdoc("matches",id),{["reports."+user.uid]:{a,b,ocr}});
+}
+
+async function resolve(m,side){const w=m[side];
+  await updateDoc(tdoc("matches",m.id),{winner:side});
+  if(m.r+1>=T.rounds){if(isOwner())await finishKO(w,m[side==="a"?"b":"a"])}
+  else await updateDoc(tdoc("matches",`r${m.r+1}_${Math.floor(m.i/2)}`),{[m.i%2===0?"a":"b"]:w});}
+
+async function finishKO(w,l){const pr=modeOf(T)?.prizes||[0,0,0];
+  if(pr[0]+(l?pr[1]:0)>pool()){alert("The prizes add up to more than the money collected. Check the entries or lower the prizes.");return}
+  const b=writeBatch(db);b.update(tdoc(),{status:"done",champion:w.name});
+  b.set(tdoc("payouts",w.id),{team:w.name,amount:pr[0],place:1,paid:false});
+  if(l&&pr[1]>0)b.set(tdoc("payouts",l.id),{team:l.name,amount:pr[1],place:2,paid:false});
+  await b.commit();}
+
+/* ---------- Plain instructions: what to do next ---------- */
+function stepsCard(mine,host){
+  let t,st;
+  if(host){t="Host and owner steps";st=["The owner checks each payment and approves the team.","When enough teams are approved, tap Start tournament.","Post the room ID and password shortly before the start time.","Confirm results when teams report. If the scores differ, check the screenshots and decide.","The owner finishes the tournament, pays the prizes and taps Mark paid."]}
+  else if(!mine&&T.status==="open"){t="How to join";st=["Send the entry fee to the account shown in the Register box below.","Fill in your team name, in-game usernames, payment reference and payout account.","Tap Submit entry, then wait for approval. Do not pay twice."]}
+  else if(!mine){t="Registration is closed";st=["This tournament has already started. Check Open tournaments for the next one."]}
+  else if(mine.status==="pending"){t="Your next step: wait";st=["Your entry is waiting for the owner to confirm your payment.","Come back to this page later. Do not pay again."]}
+  else if(mine.status==="rejected"){t="Your entry was rejected";st=["Your payment could not be confirmed.","Contact the owner and show your proof of payment."]}
+  else if(T.status==="open"){t="You are in. Your next steps";st=["Download your ticket below and keep it safe.","Come back to this page before the start time.","The room ID and password will appear here. Open the game, go to custom rooms and enter them.","Be ready on time."]}
+  else if(T.status==="live"&&T.fmt==="br"){t="Your next steps";st=["Play the match in the game room.","After each match, enter your placement and total kills, and upload your result screenshot. Your phone's clock must show at the top.","The host approves it, then your points show on the leaderboard."]}
+  else if(T.status==="live"){t="Your next steps";st=["Find your opponent's in-game username in your match box, add them in the game and play.","After the match, both captains enter the score and upload the screenshot (your phone's clock must show) in your match box.","When both scores match and the host confirms, the winner automatically gets the next opponent."]}
+  else{t="Tournament finished";st=["If your team won, the captain must show the ticket code to the owner.","The prize is sent to the payout account you gave when you registered."]}
+  return `<div class="card steps"><h2>${t}</h2><ol class="rules">${st.map(x=>`<li>${x}</li>`).join("")}</ol></div>`;
+}
+
+/* ---------- Download the ticket as a picture ---------- */
+function downloadTicket(){
+  const mine=teams.find(t=>t.id===user.uid);if(!mine||!myPriv)return;
+  const c=document.createElement("canvas");c.width=900;c.height=560;const x=c.getContext("2d");
+  x.fillStyle="#0e0f14";x.fillRect(0,0,900,560);
+  x.strokeStyle="#e8344e";x.lineWidth=6;x.setLineDash([18,10]);x.strokeRect(20,20,860,520);x.setLineDash([]);
+  x.fillStyle="#e8344e";x.font="bold 34px sans-serif";x.fillText("NINJA ARENA - GAME TICKET",60,90);
+  x.fillStyle="#f2f3f7";x.font="bold 40px sans-serif";x.fillText(T.name.slice(0,32),60,160);
+  x.font="26px sans-serif";x.fillStyle="#98a0b5";
+  [T.game+(T.mode?" - "+T.mode:"")+(T.startsAt?"  |  "+T.startsAt.replace("T"," "):""),"Team: "+mine.name,"Captain: "+mine.captain,("Players: "+(mine.usernames||[]).join(", ")).slice(0,60),"Paid: "+(T.fee*T.teamSize)+" naira"]
+    .forEach((l,i)=>x.fillText(l.slice(0,60),60,215+i*46));
+  x.fillStyle="#f2f3f7";x.font="bold 64px monospace";x.fillText(myPriv.code,60,500);
+  c.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="ninja-arena-ticket-"+myPriv.code+".png";document.body.appendChild(a);a.click();a.remove()});
+}
+
+/* ---------- Battle royale ---------- */
+function standings(){const S={};approved().forEach(t=>S[t.id]={id:t.id,name:t.name,pts:0,kills:0});
+  results.filter(r=>r.ok).forEach(r=>{const s=S[r.tid];if(s){s.pts+=(PLACE_POINTS[r.place-1]||0)+r.kills;s.kills+=r.kills}});
+  return Object.values(S).sort((a,b)=>b.pts-a.pts||b.kills-a.kills);}
+function brView(mine){const st=standings();let h=`<div class="card"><h2>Leaderboard</h2><table><tr><th>#</th><th>Team</th><th>Kills</th><th>Points</th></tr>`+
+  st.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.name)}</td><td>${s.kills}</td><td>${s.pts}</td></tr>`).join("")+`</table></div>`;
+  if(T.status==="live"&&mine?.status==="approved")h+=`<div class="card"><h2>Submit your match result</h2><div class="row">
+  <select id="bg" style="width:auto">${Array.from({length:T.games},(_,i)=>`<option value="${i+1}">Match ${i+1}</option>`).join("")}</select>
+  <input id="bp" type="number" min="1" placeholder="Placement" style="width:120px"><input id="bk2" type="number" min="0" placeholder="Total kills" style="width:120px"></div>
+  <div class="row"><input id="bf" type="file" accept="image/*"><button id="brs">Submit</button></div><p class="mute">Upload the result screenshot. The host approves it before points count.</p></div>`;
+  h+=`<div class="card"><h2>All submitted results</h2>`+(results.length?`<table><tr><th>Team</th><th>Match</th><th>Place</th><th>Kills</th><th>Status</th></tr>`+results.map(r=>`<tr><td>${esc(r.tname)}</td><td>${r.g}</td><td>${r.place}</td><td>${r.kills}</td><td>${r.ok?"approved":r.rejected?"rejected":"waiting"}</td></tr>`).join("")+`</table>`:`<p class="mute">Nothing submitted yet.</p>`)+`</div>`;
+  const pend=results.filter(r=>!r.ok&&!r.rejected);
+  if(isHost()&&T.status==="live"){h+=`<div class="card"><h2>Results to approve</h2>`+(pend.length?pend.map(r=>`<div class="item"><div><strong>${esc(r.tname)}</strong> | Match ${r.g}<br><span class="mute">Place ${r.place}, kills ${r.kills} | ${esc(r.ocr)}</span></div>
+    <div class="row" style="margin:0"><button class="ok" data-ok="${r.id}">Approve</button><button class="g" data-no="${r.id}">Reject</button></div></div>`).join(""):`<p class="mute">Nothing waiting.</p>`)+
+    (isOwner()?`<div class="row"><button id="fin">Finish tournament and work out prizes</button></div>`:"")+`</div>`}
+  return h;}
+async function submitBR(){
+  const place=parseInt($("bp").value),kills=parseInt($("bk2").value),g=+$("bg").value,t=teams.find(x=>x.id===user.uid);
+  if(isNaN(place)||isNaN(kills)||place<1){alert("Enter your placement and kills.");return}
+  let ck;try{ck=await checkShot($("bf").files[0],t.usernames)}catch(e){ck={ok:false,msg:"the screenshot could not be read. Try again with a clear screenshot."}}
+  if(!ck.ok){alert("Screenshot not valid: "+ck.msg+"\n\nTake a new screenshot with your phone's clock showing and try again.");return}
+  const ocr=ck.msg;
+  await setDoc(tdoc("results",`${g}_${user.uid}`),{g,tid:user.uid,tname:t.name,place,kills,ocr,ok:false});}
+async function finishBR(){const st=standings(),pr=modeOf(T)?.prizes||[0,0,0],b=writeBatch(db);
+  if(pr.slice(0,st.length).reduce((x,y)=>x+y,0)>pool()){alert("The prizes add up to more than the money collected.");return}
+  pr.forEach((amt,i)=>{if(st[i]&&amt>0)b.set(tdoc("payouts",st[i].id),{team:st[i].name,amount:amt,place:i+1,paid:false})});
+  b.update(tdoc(),{status:"done",champion:st[0]?.name||""});await b.commit();}
+
+/* ---------- Payout list ---------- */
+function payView(){return `<div class="card"><h2>Prizes</h2>`+(payouts.length?payouts.map(p=>{const t=teams.find(x=>x.id===p.id);
+  return `<div class="item"><div><strong>${esc(p.team)}</strong> ${p.paid?'<span class="tag approved">paid</span>':'<span class="tag pending">to pay</span>'}<br>
+  <span class="mute">${p.amount} naira${isOwner()&&t?" | send to "+esc(t.captain)+": "+esc(pv(t.id).payout):""}</span>${isOwner()&&!p.paid?`<div class="row"><input id="vt_${p.id}" placeholder="Captain's ticket code" style="width:180px"><button class="g" data-vt="${p.id}">Check ticket</button></div>`:""}</div>
+  ${isOwner()&&!p.paid?`<button class="ok" data-paid="${p.id}">Mark paid</button>`:""}</div>`}).join(""):`<p class="mute">No prizes.</p>`)+`</div>`;}
+</script>
+</body>
+</html>
