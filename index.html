@@ -52,6 +52,7 @@ button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid 
 .champ{text-align:center;font:700 1.5rem 'Chakra Petch',sans-serif;border-radius:18px;padding:22px;margin-bottom:14px;color:var(--gold);border:1px solid rgba(255,209,102,.5);background:linear-gradient(135deg,rgba(255,209,102,.18),rgba(255,59,92,.12));box-shadow:0 0 30px rgba(255,209,102,.18)}
 table{width:100%;border-collapse:collapse}td,th{padding:8px 6px;border-top:1px solid var(--line);text-align:left}th{color:var(--mute);font-weight:600}
 .err{color:#ff7088;margin:8px 0 0}
+.online{position:fixed;left:12px;bottom:12px;z-index:20;padding:7px 14px;border-radius:99px;background:rgba(7,8,13,.9);border:1px solid var(--line);font-size:.85rem;font-weight:700}
 #who{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
 .modal{position:fixed;inset:0;z-index:50;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;padding:14px}
 .sheet{background:#12141d;border:1px solid var(--line);border-radius:20px;max-width:520px;width:100%;max-height:88vh;overflow:auto;padding:20px}
@@ -64,6 +65,7 @@ ol.rules{padding-left:22px;margin:0}ol.rules li{margin:9px 0}
 </head>
 <body>
 <main><header><div class="logo"><svg width="30" height="30" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff3b5c"/><stop offset="1" stop-color="#ff7a45"/></linearGradient></defs><path d="M16 1l4 11 11 4-11 4-4 11-4-11L1 16l11-4z" fill="url(#lg)"/><circle cx="16" cy="16" r="3.2" fill="#07080d"/></svg><h1>NINJA ARENA</h1></div><div id="who"></div></header><div id="app"></div></main>
+<div id="onl" class="online" style="display:none"></div>
 
 <script type="module">
 /* ===== 1. SETUP ===== */
@@ -94,7 +96,7 @@ const GAMES = {
   "Call of Duty":{
     "2v2 match":TWO,
     "1v1":ONE},
-  "DLS":{"1v1 match":ONE,"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
+  "DLS":{"1v1 match":ONE,"Cup (8 players)":{fmt:"ko",size:1,max:8,fee:500,prizes:[2000,1000,0]},"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
   "FC Mobile":{"1v1 match":ONE,"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
   "eFootball":{"1v1 match":ONE,"Cup (8 players)":{fmt:"ko",size:1,max:8,fee:500,prizes:[2000,1000,0]},"Cup (up to 48 players)":{fmt:"ko",size:1,max:48,fee:500,prizes:[12000,6000,0]}},
   "Chess":{"1v1 match":ONE,"Cup (up to 16 players)":{fmt:"ko",size:1,max:16,fee:500,prizes:[4000,2000,0]}},
@@ -105,24 +107,24 @@ const modeOf=t=>{const g=GAMES[t.game]||{};return g[t.mode]||Object.values(g)[0]
 /* ================= */
 
 const ICON={"Free Fire":"🔥","CODM":"🎯","CODM Battle Royale":"🎯","Other game":"🎮","Blood Strike":"🩸","CODM Multiplayer":"🔫","Call of Duty":"🎖️","DLS":"⚽","FC Mobile":"⚽","eFootball":"⚽","Chess":"♟️","Ludo":"🎲"};
-const TERMS_VERSION="2";   // change this number whenever you change the rules, and everyone must accept again
+const TERMS_VERSION="4";   // change this number whenever you change the rules, and everyone must accept again
 const CONTACT_INFO='Questions or problems? Contact the owner on WhatsApp: <a href="https://wa.me/2349023721750" style="color:#ff7a45;font-weight:700">09023721750</a> or by email: <a href="mailto:launchnaija@gmail.com" style="color:#ff7a45;font-weight:700">launchnaija@gmail.com</a>';
 const RULES=[
  "One person, one account. Use your real in-game username, exactly as it appears in the game.",
  "Pay the exact entry fee to the account shown on the tournament page, then register with your payment reference. You are NOT in until the owner approves your payment. Do not pay twice.",
  "Your ticket is your proof of entry. Download it and keep it. The team captain must show the ticket code to be paid any prize.",
- "Be ready on time. The room ID and password appear in the app shortly before the start. Teams that miss the start can be removed, and the entry fee is not refunded.",
+ "Be ready on time. The room ID and password appear in the app shortly before the start. Teams that miss the start can be removed, and the entry fee is not refunded. If a tournament shows a game server, all your players must be on that server.",
  "Play fair and report honestly. No hacks, no cheats, no fake screenshots, no fake scores. Every result screenshot must show your phone\'s clock and be taken within the last 60 minutes, or it is not valid. Cheaters lose their entry and prize and are banned. In a dispute, the host or owner decides and the decision is final.",
  "Prizes are fixed for each game and shown on the tournament page. They are paid to the winning captain's payout account after results are confirmed and the ticket is checked. Make sure your payout details are correct, because money sent to a wrong account you gave cannot be recovered."
 ];
 const TERMS_HTML=`<p><strong>Rules</strong></p><ol class="rules">${RULES.map(r=>`<li>${r}</li>`).join("")}</ol>
 <p><strong>Money</strong><br>Entry fees are paid by bank transfer to the account shown in the app. Once your entry is approved it is not refunded, unless the tournament is cancelled. Prize amounts are fixed for each game. The app owner keeps what is left after prizes are paid.</p>
-<p><strong>Privacy</strong><br>We collect your email, username, team name, in-game usernames, payment reference, payout account details and tournament results. Your payment reference and payout details can only be seen by the app owner. Your username, team name and in-game usernames can be seen by other players. Result screenshots are read on your own phone to check usernames and are not uploaded or stored. Your data is stored with Google Firebase. We do not sell your data. To ask for your data to be removed, contact the owner.</p>
+<p><strong>Privacy</strong><br>We collect your email, username, team name, in-game usernames, payment reference, payout account details and tournament results. Your payment reference and payout details can only be seen by the app owner. Your username, team name and in-game usernames can be seen by other players. Result screenshots are read on your own phone to check usernames and are not uploaded or stored. We also record when you were last active, only to show how many people are online. Your data is stored with Google Firebase. We do not sell your data. To ask for your data to be removed, contact the owner.</p>
 <p><strong>Your agreement</strong><br>By creating an account you confirm that you are 18 or older, that you have read and accepted these rules, terms and privacy notice, and that you play at your own risk.</p>
 <p class="mute">${CONTACT_INFO}</p>`;
 import {initializeApp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {getAuth,onAuthStateChanged,signInWithEmailAndPassword,createUserWithEmailAndPassword,signOut} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import {getFirestore,collection,doc,setDoc,getDoc,updateDoc,addDoc,writeBatch,onSnapshot,query,orderBy,serverTimestamp} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import {getFirestore,collection,doc,setDoc,getDoc,updateDoc,addDoc,writeBatch,onSnapshot,query,orderBy,serverTimestamp,getCountFromServer,where,Timestamp,increment} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const fb=initializeApp(firebaseConfig),auth=getAuth(fb),db=getFirestore(fb);
 const $=id=>document.getElementById(id);
@@ -142,10 +144,17 @@ async function handleAuth(u){
   if(u){try{const s=await getDoc(doc(db,"users",u.uid));profile=s.exists()?s.data():{username:u.email}}catch(e){profile={username:u.email}}}
   $("who").innerHTML=u?`<span class="mute">@${esc(profile.username)}</span> <button class="g" id="rb">Rules</button> <button class="g" id="out">Log out</button>`:"";
   if(u){$("out").onclick=()=>signOut(auth);$("rb").onclick=()=>showRules();}
-  if(!u){showAuth();return}
+  if(!u){stopPresence();showAuth();return}
   if(profile.terms!==TERMS_VERSION){showAccept();return}
   showList();showRules();
 }
+let pTimers=[];
+async function beat(){if(!user||document.visibilityState!=="visible")return;try{await setDoc(doc(db,"presence",user.uid),{seen:serverTimestamp()})}catch(e){}}
+async function countOnline(){const p=$("onl");try{const c=await getCountFromServer(query(collection(db,"presence"),where("seen",">",Timestamp.fromMillis(Date.now()-5*60000))));p.textContent="🟢 "+c.data().count+" online now"}catch(e){p.textContent="🟢 online count unavailable"}}
+async function tick(){await beat();await countOnline()}
+function startPresence(){if(pTimers.length)return;$("onl").style.display="block";tick();pTimers=[setInterval(tick,120000)]}
+function stopPresence(){pTimers.forEach(clearInterval);pTimers=[];const p=$("onl");if(p)p.style.display="none"}
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="visible"&&pTimers.length)tick()});
 onAuthStateChanged(auth,handleAuth);
 
 function showAccept(){unsub();
@@ -201,13 +210,14 @@ async function doLogin(){
     er.textContent=c==="auth/invalid-credential"||c==="auth/wrong-password"?"Wrong password.":"Could not log in: "+c.replace("auth/","").replace(/-/g," ");}}
 
 /* ---------- List + host a tournament ---------- */
-function showList(){unsub();T=null;
+function showList(){unsub();T=null;startPresence();
   $("app").innerHTML=`<div class="hero"><div class="kicker">MOBILE GAME TOURNAMENTS</div><h2>Compete. Win. Get paid.</h2><p>Free Fire, CODM, Blood Strike, DLS, FC Mobile and more. Pay your entry, get your ticket, play and win.</p></div>
   <div class="card"><h2>Open tournaments</h2><div id="tl2" class="mute">Loading...</div></div>
   <details class="card"><summary>Host a tournament</summary>
   <label for="tn">Name</label><input id="tn" placeholder="Friday Night Cup">
   <label for="tg">Game</label><select id="tg">${Object.keys(GAMES).map(g=>`<option>${g}</option>`).join("")}</select>
   <label for="tmd">Mode</label><select id="tmd"></select><p class="mute" id="gi"></p>
+  <label for="tsv">Game server (optional. Fill it in if players on different servers cannot play together)</label><input id="tsv" placeholder="e.g. Africa">
   <label for="tgm">Matches (battle royale only)</label><input id="tgm" type="number" min="1" value="3">
   <label for="tst">Start date and time</label><input id="tst" type="datetime-local">
   <div class="row"><button id="mk">Create tournament</button></div><p class="err" id="er"></p></details>`;
@@ -216,11 +226,12 @@ function showList(){unsub();T=null;
   $("tg").onchange=modes;$("tmd").onchange=info;modes();
   $("mk").onclick=async()=>{const n=$("tn").value.trim();if(!n){$("er").textContent="Enter a tournament name.";return}
     const g=GAMES[$("tg").value][$("tmd").value];
-    await addDoc(collection(db,"tournaments"),{name:n,game:$("tg").value,mode:$("tmd").value,fmt:g.fmt,fee:g.fee,teamSize:g.size,maxTeams:g.max,games:+$("tgm").value||1,cut:0,startsAt:$("tst").value||"",status:"open",host:user.uid,hostName:profile.username,createdAt:serverTimestamp()});};
+    const sv=$("tsv").value.trim();
+    await addDoc(collection(db,"tournaments"),{name:n,game:$("tg").value,mode:$("tmd").value,server:sv,fmt:g.fmt,fee:g.fee,teamSize:g.size,maxTeams:g.max,games:+$("tgm").value||1,cut:0,startsAt:$("tst").value||"",status:"open",host:user.uid,hostName:profile.username,createdAt:serverTimestamp()});};
   subs.push(onSnapshot(query(collection(db,"tournaments"),orderBy("createdAt","desc")),s=>{
     $("tl2").innerHTML=s.empty?"None yet. Host the first one.":s.docs.map(d=>{const t=d.data();
     const pz=modeOf(t)?.prizes||[];return `<div class="tcard"><div class="tc-top"><span class="gico">${ICON[t.game]||"🎮"}</span><div><div class="tname">${esc(t.name)}</div><div class="mute">${esc(t.game)} · ${esc(t.mode||(t.fmt==="br"?"Battle royale":"Knockout"))}${t.startsAt?" · "+esc(t.startsAt.replace("T"," ")):""}</div></div><span class="tag ${t.status==="open"?"approved":""}">${esc(t.status)}</span></div>
-    <div class="chips"><span class="chip">Entry ${t.fee*t.teamSize} naira</span>${pz.filter(Boolean).map((p,i)=>`<span class="chip prize">${["🥇","🥈","🥉"][i]} ${p.toLocaleString()}</span>`).join("")}</div>
+    <div class="chips"><span class="chip">Entry ${t.fee*t.teamSize} naira</span><span class="chip">👥 ${t.approvedCount||0}/${t.maxTeams} in</span>${pz.filter(Boolean).map((p,i)=>`<span class="chip prize">${["🥇","🥈","🥉"][i]} ${p.toLocaleString()}</span>`).join("")}</div>
     <button data-id="${d.id}" class="wide">View tournament</button></div>`}).join("");
     $("tl2").querySelectorAll("button").forEach(b=>b.onclick=()=>openT(b.dataset.id));}));}
 
@@ -238,7 +249,7 @@ const pool=()=>approved().length*T.fee*T.teamSize;
 function draw(){if(!T)return;
   const mine=teams.find(t=>t.id===user.uid),total=T.fee*T.teamSize,host=isHost();
   let h=`<div class="row" style="margin:0 0 10px"><button class="g" id="bk">Back</button></div>
-  <div class="card"><h2>${esc(T.name)}</h2><div class="mute">${esc(T.game)}${T.mode?" - "+esc(T.mode):""} | ${T.fmt==="br"?"battle royale, "+T.games+" matches":"knockout"} | ${T.teamSize} per team | ${total} naira per team | ${esc(T.status)}${T.startsAt?" | starts "+esc(T.startsAt.replace("T"," ")):""}<br>Hosted by ${esc(T.hostName)} | ${isOwner()?"Collected so far: "+pool()+" naira | ":""}Prizes: ${(modeOf(T)?.prizes||[]).filter(Boolean).join(" / ")} naira</div></div>`;
+  <div class="card"><h2>${esc(T.name)}</h2><div class="mute">${esc(T.game)}${T.mode?" - "+esc(T.mode):""} | ${T.fmt==="br"?"battle royale, "+T.games+" matches":"knockout"} | ${T.teamSize} per team | ${total} naira per team | ${esc(T.status)}${T.startsAt?" | starts "+esc(T.startsAt.replace("T"," ")):""}<br>Hosted by ${esc(T.hostName)}${T.server?" | <strong>Server: "+esc(T.server)+"</strong>":""}<br><strong>${approved().length} of ${T.maxTeams}</strong> ${T.teamSize>1?"teams":"players"} are in${isOwner()?" | you need at least "+needed()+" to pay the prizes":""} | ${isOwner()?"Collected so far: "+pool()+" naira | ":""}Prizes: ${(modeOf(T)?.prizes||[]).filter(Boolean).join(" / ")} naira</div></div>`;
   h+=stepsCard(mine,host);
   if(T.champion)h+=`<div class="champ">Champion: ${esc(T.champion)}</div>`;
 
@@ -250,6 +261,7 @@ function draw(){if(!T)return;
     <div style="font:700 1.1rem 'Chakra Petch',sans-serif;margin-bottom:12px">${PAY_NAME}</div>
     <button id="cp">Copy account number</button></div>
   <p class="mute">After you pay, fill this in. You are the team captain.</p>
+  ${T.server?`<div class="m" style="border-color:var(--red)"><strong>Server: ${esc(T.server)}</strong><br><span class="mute">You can only play if you are on this server. Players on other servers cannot join the room.</span></div><label class="chk"><input type="checkbox" id="sv"><span>${T.teamSize>1?"All players in my team play":"I play"} on the ${esc(T.server)} server.</span></label>`:""}
   <label for="tm">Team name${T.teamSize===1?" (or your name)":""}</label><input id="tm">
   <label for="cu">Your in-game username (captain)</label><input id="cu">
   ${T.teamSize>1?`<label for="mu">Other players' in-game usernames (comma separated)</label><input id="mu">`:""}
@@ -260,7 +272,7 @@ function draw(){if(!T)return;
   <p class="mute">${mine.status==="pending"?"Waiting for the host to confirm your payment.":mine.status==="approved"?"You are in.":"Entry rejected. Contact the host."}</p></div>`;
 
   if(mine?.status==="approved"&&myPriv)h+=`<div class="card" style="border:2px dashed var(--red)"><h2>Game ticket</h2><div><strong>${esc(T.name)}</strong><br>${esc(T.game)}${T.startsAt?" | "+esc(T.startsAt.replace("T"," ")):""}</div>
-  <div class="mute">Team: ${esc(mine.name)} | Captain: ${esc(mine.captain)}<br>Players: ${esc((mine.usernames||[]).join(", "))}<br>Paid: ${total} naira</div>
+  <div class="mute">${T.server?"Server: <strong>"+esc(T.server)+"</strong><br>":""}Team: ${esc(mine.name)} | Captain: ${esc(mine.captain)}<br>Players: ${esc((mine.usernames||[]).join(", "))}<br>Paid: ${total} naira</div>
   <div style="font-size:1.4rem;font-weight:700;margin-top:8px">${esc(myPriv.code)}</div><p class="mute">Screenshot this ticket and keep it. The captain needs it to claim any prize.</p><div class="row"><button id="dl">Download ticket</button></div></div>`;
   if(host&&T.status!=="done")h+=`<div class="card"><h2>Game room details</h2><p class="mute">Only approved teams can see these. Add them shortly before the match starts.</p>
   <label for="ri">Room ID</label><input id="ri" value="${esc(room?.id||"")}"><label for="rp">Room password</label><input id="rp" value="${esc(room?.pass||"")}">
@@ -281,7 +293,11 @@ function draw(){if(!T)return;
   if($("jn"))$("jn").onclick=join;
   if($("cp"))$("cp").onclick=()=>{navigator.clipboard.writeText(PAY_NUMBER).then(()=>{$("cp").textContent="Copied!"},()=>{$("cp").textContent="Press and hold the number to copy"})};
   if($("dl"))$("dl").onclick=downloadTicket;
-  document.querySelectorAll("[data-a]").forEach(b=>b.onclick=()=>updateDoc(tdoc("teams",b.dataset.id),{status:b.dataset.a}));
+  document.querySelectorAll("[data-a]").forEach(b=>b.onclick=async()=>{const t=teams.find(x=>x.id===b.dataset.id),to=b.dataset.a,was=t&&t.status,bt=writeBatch(db);
+    bt.update(tdoc("teams",b.dataset.id),{status:to});
+    if(to==="approved"&&was!=="approved")bt.update(tdoc(),{approvedCount:increment(1)});
+    if(to!=="approved"&&was==="approved")bt.update(tdoc(),{approvedCount:increment(-1)});
+    await bt.commit()});
   if($("st"))$("st").onclick=start;
   document.querySelectorAll("[data-rep]").forEach(b=>b.onclick=()=>{b.disabled=true;b.textContent="Checking screenshot...";report(b.dataset.rep).finally(()=>{b.disabled=false;b.textContent="Submit result"})});
   document.querySelectorAll("[data-win]").forEach(b=>b.onclick=()=>{const[i,s]=b.dataset.win.split("|");resolve(matches.find(m=>m.id===i),s)});
@@ -297,9 +313,10 @@ function draw(){if(!T)return;
 async function join(){
   const name=$("tm").value.trim(),cu=$("cu").value.trim(),pr=$("pr").value.trim(),po=$("po").value.trim();
   if(!name||!cu||!pr||!po){$("er").textContent="Fill in every box.";return}
+  if(T.server&&!$("sv").checked){$("er").textContent="Confirm that you play on the "+T.server+" server.";return}
   const others=T.teamSize>1?$("mu").value.split(",").map(s=>s.trim()).filter(Boolean):[];
   if(others.length+1!==T.teamSize){$("er").textContent=`This game needs ${T.teamSize} usernames in total, including yours.`;return}
-  await setDoc(tdoc("teams",user.uid),{name,captain:cu,usernames:[cu,...others],status:"pending"});await setDoc(tdoc("private",user.uid),{payRef:pr,payout:po,code:crypto.randomUUID().slice(0,8).toUpperCase()});}
+  await setDoc(tdoc("teams",user.uid),{name,captain:cu,usernames:[cu,...others],server:T.server||"",status:"pending"});await setDoc(tdoc("private",user.uid),{payRef:pr,payout:po,code:crypto.randomUUID().slice(0,8).toUpperCase()});}
 
 /* ---------- Screenshot check (reads text in the image, in the browser) ---------- */
 const SHOT_WINDOW_MIN=60;   // a screenshot must be from the last 60 minutes
@@ -388,6 +405,8 @@ async function finishKO(w,l){const pr=modeOf(T)?.prizes||[0,0,0];
   if(l&&pr[1]>0)b.set(tdoc("payouts",l.id),{team:l.name,amount:pr[1],place:2,paid:false});
   await b.commit();}
 
+function needed(){const m=modeOf(T)||{prizes:[]},pr=m.prizes||[],sum=m.fmt==="br"?pr.reduce((a,b)=>a+b,0):(pr[0]||0)+(pr[1]||0);return Math.ceil(sum/((T.fee*T.teamSize)||1))}
+
 /* ---------- Owner can delete a tournament ---------- */
 async function deleteTournament(){
   if(!confirm("Delete this tournament for good? If players have paid, refund them first. This cannot be undone."))return;
@@ -426,8 +445,8 @@ function downloadTicket(){
   x.fillStyle="#e8344e";x.font="bold 34px sans-serif";x.fillText("NINJA ARENA - GAME TICKET",60,90);
   x.fillStyle="#f2f3f7";x.font="bold 40px sans-serif";x.fillText(T.name.slice(0,32),60,160);
   x.font="26px sans-serif";x.fillStyle="#98a0b5";
-  [T.game+(T.mode?" - "+T.mode:"")+(T.startsAt?"  |  "+T.startsAt.replace("T"," "):""),"Team: "+mine.name,"Captain: "+mine.captain,("Players: "+(mine.usernames||[]).join(", ")).slice(0,60),"Paid: "+(T.fee*T.teamSize)+" naira"]
-    .forEach((l,i)=>x.fillText(l.slice(0,60),60,215+i*46));
+  [T.game+(T.mode?" - "+T.mode:"")+(T.startsAt?"  |  "+T.startsAt.replace("T"," "):""),...(T.server?["Server: "+T.server]:[]),"Team: "+mine.name,"Captain: "+mine.captain,("Players: "+(mine.usernames||[]).join(", ")).slice(0,60),"Paid: "+(T.fee*T.teamSize)+" naira"]
+    .forEach((l,i)=>x.fillText(l.slice(0,60),60,215+i*40));
   x.fillStyle="#f2f3f7";x.font="bold 64px monospace";x.fillText(myPriv.code,60,500);
   c.toBlob(b=>{const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download="ninja-arena-ticket-"+myPriv.code+".png";document.body.appendChild(a);a.click();a.remove()});
 }
